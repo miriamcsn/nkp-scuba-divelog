@@ -1,6 +1,7 @@
 from typing import List, Optional
 from fastapi import FastAPI, Depends, HTTPException
 from sqlmodel import Session, select
+from fastapi.middleware.cors import CORSMiddleware
 
 from .database import engine, init_db, get_session
 from .models import (
@@ -16,6 +17,13 @@ app = FastAPI(
     version="0.1.0",
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],          # for local dev; restrict to specific origins in production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.on_event("startup")
 def on_startup() -> None:
