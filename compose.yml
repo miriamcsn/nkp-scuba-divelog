@@ -1,0 +1,18 @@
+services:
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: sqlite:////data/divelog.db
+    volumes:
+      - divelog-data:/data
+    # No ports section — backend is only reachable inside the compose network
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "8080:80"   # host port 8080 → container port 80
+    depends_on:
+      - backend
+
+volumes:
+  divelog-data:
