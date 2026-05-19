@@ -21,6 +21,10 @@ spec:
         {{- include "scuba-divelog.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: backend
     spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
       containers:
         - name: backend
           image: "{{ .Values.image.registry }}/{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
