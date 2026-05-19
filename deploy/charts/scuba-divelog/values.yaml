@@ -1,0 +1,47 @@
+# Image registry + pull policy shared by both components
+image:
+  registry: ghcr.io/miriamcsn
+  pullPolicy: IfNotPresent
+
+# Backend: FastAPI + SQLite, single replica because SQLite is single-writer
+backend:
+  image:
+    repository: scuba-divelog-backend
+    tag: "0.1.0"
+  replicaCount: 1
+  port: 8000
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+  persistence:
+    enabled: true
+    size: 1Gi
+    storageClassName: nutanix-volume
+    mountPath: /data
+
+# Frontend: nginx serving static HTML + proxying /api to the backend
+frontend:
+  image:
+    repository: scuba-divelog-frontend
+    tag: "0.1.0"
+  replicaCount: 2
+  port: 80
+  resources:
+    requests:
+      cpu: 50m
+      memory: 32Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+# Ingress (Traefik via NKP Kommander)
+ingress:
+  enabled: true
+  className: kommander-traefik
+  host: ""            # leave empty to match any host (we'll hit the LoadBalancer IP directly)
+  path: /
+  pathType: Prefix
