@@ -1,6 +1,8 @@
 from typing import Optional, List
 from datetime import datetime
 from sqlmodel import SQLModel, Field, Relationship
+from sqlalchemy import Column, TEXT
+
 
 
 # ============== Diver ==============
@@ -66,7 +68,7 @@ class DiveBase(SQLModel):
     tank_pressure_start_bar: Optional[int] = None
     tank_pressure_end_bar: Optional[int] = None
     buddy: Optional[str] = None
-    notes: Optional[str] = None
+    notes: Optional[str] = Field(default=None, sa_column=Column(TEXT))
     rating: Optional[int] = None
 
 
