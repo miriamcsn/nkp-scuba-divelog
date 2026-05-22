@@ -4,3 +4,8 @@ description: A scuba diving log application demo for NKP
 type: application
 version: 0.1.0
 appVersion: "0.1.0"
+dependencies:
+  - name: mysql
+    version: 11.1.19
+    repository: https://charts.bitnami.com/bitnami
+    condition: mysql.enabled

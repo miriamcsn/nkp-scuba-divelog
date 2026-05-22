@@ -18,7 +18,10 @@ backend:
       cpu: 500m
       memory: 256Mi
   persistence:
-    enabled: true
+  # v2 uses MySQL for state — no per-pod PVC needed.
+  # The PVC the customer cares about lives on the mysql sub-chart's StatefulSet
+  # (see mysql.primary.persistence below), which is what NDK protects.
+    enabled: false
     size: 1Gi
     storageClassName: nutanix-volume
     mountPath: /data
@@ -45,3 +48,28 @@ ingress:
   host: ""            # leave empty to match any host (we'll hit the LoadBalancer IP directly)
   path: /
   pathType: Prefix
+
+# Bitnami MySQL sub-chart config
+mysql:
+  enabled: true
+  architecture: standalone   # single primary, no replicas — keeps demo simple
+  auth:
+    rootPassword: "rootpw"          # let chart generate; we'll override for demo predictability
+    database: divelog
+    username: divelog
+    password: "divelog"       # demo password; in prod use existingSecret
+  primary:
+    persistence:
+      enabled: true
+      storageClass: nutanix-volume
+      size: 5Gi                # set this to a size your NDK policy will replicate fast enough
+      # IMPORTANT for NDK: don't set existingClaim — let the StatefulSet's
+      # volumeClaimTemplate create a fresh PVC named data-scuba-mysql-0.
+      # NDK protection policies target PVCs (or namespaces); a templated PVC
+      # with a predictable name makes the policy trivial to write.    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: 1000m
+        memory: 1Gi
