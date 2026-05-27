@@ -15,9 +15,7 @@ RUN useradd -m -u 1000 appuser && \
     chown -R appuser:appuser /app /data
 USER appuser
 
-# SQLite file path inside the container — on Day 5 this will be a PVC mount
-ENV DATABASE_URL=sqlite:////data/divelog.db
-VOLUME ["/data"]
+# v2: state lives in MySQL. No local volume. DATABASE_URL is injected by k8s Secret.
 
 EXPOSE 8000
 

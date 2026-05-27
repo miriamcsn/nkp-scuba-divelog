@@ -7,7 +7,7 @@ image:
 backend:
   image:
     repository: scuba-divelog-backend
-    tag: "0.1.0"
+    tag: "0.2.0"
   replicaCount: 1
   port: 8000
   resources:
@@ -49,27 +49,18 @@ ingress:
   path: /
   pathType: Prefix
 
-# Bitnami MySQL sub-chart config
+#mySQL settings for the mysql sub-chart
 mysql:
   enabled: true
-  architecture: standalone   # single primary, no replicas — keeps demo simple
+  image:
+    repository: mysql
+    tag: "8.4"
+    pullPolicy: IfNotPresent
   auth:
-    rootPassword: "rootpw"          # let chart generate; we'll override for demo predictability
-    database: divelog
+    rootPassword: "rootpw"
     username: divelog
-    password: "divelog"       # demo password; in prod use existingSecret
-  primary:
-    persistence:
-      enabled: true
-      storageClass: nutanix-volume
-      size: 5Gi                # set this to a size your NDK policy will replicate fast enough
-      # IMPORTANT for NDK: don't set existingClaim — let the StatefulSet's
-      # volumeClaimTemplate create a fresh PVC named data-scuba-mysql-0.
-      # NDK protection policies target PVCs (or namespaces); a templated PVC
-      # with a predictable name makes the policy trivial to write.    resources:
-      requests:
-        cpu: 200m
-        memory: 512Mi
-      limits:
-        cpu: 1000m
-        memory: 1Gi
+    password: "divelog"
+    database: divelog
+  persistence:
+    storageClass: "nutanix-volume"
+    size: 8Gi

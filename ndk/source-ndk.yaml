@@ -1,0 +1,54 @@
+apiVersion: dataservices.nutanix.com/v1alpha1
+kind: Application
+metadata:
+  name: scuba
+  namespace: miriam-scuba
+spec:
+  applicationSelector:
+    resourceLabelSelectors:
+    - labelSelector:
+        matchLabels:
+          app.kubernetes.io/instance: scuba
+  start: true
+  useExistingConfig: false
+---
+apiVersion: dataservices.nutanix.com/v1alpha1
+kind: ReplicationTarget
+metadata:
+  name: repl-to-nkp-wlc-b
+  namespace: miriam-scuba
+spec:
+  namespaceName: miriam-backup
+  remoteName: remote-nkp-wlc-b
+---
+apiVersion: scheduler.nutanix.com/v1alpha1
+kind: JobScheduler
+metadata:
+  name: js-scuba-source
+  namespace: miriam-scuba
+spec:
+  interval:
+    minutes: 60
+---
+apiVersion: dataservices.nutanix.com/v1alpha1
+kind: ProtectionPlan
+metadata:
+  name: pp-scuba-source-to-target
+  namespace: miriam-scuba
+spec:
+  protectionType: async
+  replicationConfigs:
+  - replicationTargetName: repl-to-nkp-wlc-b
+  retentionPolicy:
+    retentionCount: 3
+  scheduleName: js-scuba-source
+---
+apiVersion: dataservices.nutanix.com/v1alpha1
+kind: AppProtectionPlan
+metadata:
+  name: appplan-scuba
+  namespace: miriam-scuba
+spec:
+  applicationName: scuba
+  protectionPlanNames:
+  - pp-scuba-source-to-target

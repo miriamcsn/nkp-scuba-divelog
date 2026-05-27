@@ -1,7 +1,7 @@
 # Docker Compose for MySQL
 services:
   mysql:
-    image: mysql:8.4
+    image: docker.io/bitnamilegacy/mysql:8.4
     environment:
       MYSQL_ROOT_PASSWORD: rootpw
       MYSQL_DATABASE: divelog
