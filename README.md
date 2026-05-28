@@ -64,10 +64,3 @@ On every push to `main`, GitHub Actions (`.github/workflows/deploy.yml`):
 2. **Deploy job** (self-hosted runner on the cluster's bastion): runs `helm upgrade --install` with `--set backend.image.tag=<sha>` and `--set frontend.image.tag=<sha>`, then waits for pods to be healthy.
 
 A successful push is live on the cluster in ~3–4 minutes.
-
-## Known limitations (deferred to Phase 2)
-
-- **TLS** — Traefik serves a self-signed default certificate; browsers warn on first load. Next iteration adds `cert-manager` + a `ClusterIssuer` so every ingress gets a valid cert automatically.
-- **Private images** — packages are public for sprint simplicity. Production would use a Kubernetes `imagePullSecret` and a private GHCR or an internal Harbor registry.
-- **Single-replica backend** — SQLite is a single-writer database. Migrating to PostgreSQL (with Alembic migrations and a real-HA deployment) is a planned Phase 2 deepening.
-- **Self-hosted runner persistence** — runs under `nohup` because Rocky Linux SELinux blocks the systemd install path from a user home directory. Production fix is `semanage fcontext` on the runner dir.
