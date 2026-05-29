@@ -57,10 +57,10 @@ mysql:
     tag: "8.4"
     pullPolicy: IfNotPresent
   auth:
-    rootPassword: "rootpw"
-    username: divelog
-    password: "divelog"
-    database: divelog
+    rootPassword: ""
+    username: ""
+    password: ""
+    database: ""
   persistence:
     storageClass: "nutanix-volume"
     size: 8Gi
