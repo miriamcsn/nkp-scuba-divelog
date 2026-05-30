@@ -6,6 +6,14 @@
 | A (nkp-wlc-a) | miriam-scuba-sealed | miriam-backup-sealed |
 | B (nkp-wlc-b) | miriam-scuba-sealed | miriam-backup-sealed |
 
+## Access
+- **URL:** http://scubadivelog.online (DNS managed automatically by ExternalDNS)
+- After failover → ExternalDNS on cluster B updates DNS to `10.38.48.147` automatically
+- After failback → ExternalDNS on cluster A updates DNS to `10.38.48.141` automatically
+- ⚠️ `scubadivelog.online` resolves to a private IP — must be on the same network as the clusters
+
+---
+
 ## Initial Setup (one-time)
 
 ### 1. Create namespaces on both clusters
@@ -37,7 +45,56 @@ helm install sealed-secrets sealed-secrets/sealed-secrets \
   --namespace miriam-scuba-sealed --version 2.17.2
 ```
 
-### 3. Apply NDK manifests
+### 3. Apply sealed secrets (Cloudflare token + app secrets)
+```bash
+# Cluster A
+export KUBECONFIG=~/.kube/manager/nkp-wlc-a-kubeconfig.conf
+kubectl apply -f ndk-sealed/sealed-cloudflare-token.yaml
+kubectl apply -f ndk-sealed/sealed-mysql-secret.yaml
+kubectl apply -f ndk-sealed/sealed-app-db-secret.yaml
+
+# Cluster B
+export KUBECONFIG=~/.kube/manager/nkp-wlc-b-kubeconfig.conf
+kubectl apply -f ndk-sealed/sealed-cloudflare-token.yaml
+kubectl apply -f ndk-sealed/sealed-mysql-secret.yaml
+kubectl apply -f ndk-sealed/sealed-app-db-secret.yaml
+```
+
+### 4. Install ExternalDNS on BOTH clusters
+```bash
+helm repo add external-dns https://kubernetes-sigs.github.io/external-dns/
+helm repo update
+
+# Cluster A
+export KUBECONFIG=~/.kube/manager/nkp-wlc-a-kubeconfig.conf
+helm install external-dns external-dns/external-dns \
+  --namespace miriam-scuba-sealed \
+  --set provider.name=cloudflare \
+  --set "cloudflare.proxied=false" \
+  --set "domainFilters={scubadivelog.online}" \
+  --set "sources={ingress}" \
+  --set "policy=sync" \
+  --set "txtOwnerId=nkp-wlc-a" \
+  --set "env[0].name=CF_API_TOKEN" \
+  --set "env[0].valueFrom.secretKeyRef.name=cloudflare-api-token" \
+  --set "env[0].valueFrom.secretKeyRef.key=cloudflare_api_token"
+
+# Cluster B
+export KUBECONFIG=~/.kube/manager/nkp-wlc-b-kubeconfig.conf
+helm install external-dns external-dns/external-dns \
+  --namespace miriam-scuba-sealed \
+  --set provider.name=cloudflare \
+  --set "cloudflare.proxied=false" \
+  --set "domainFilters={scubadivelog.online}" \
+  --set "sources={ingress}" \
+  --set "policy=sync" \
+  --set "txtOwnerId=nkp-wlc-b" \
+  --set "env[0].name=CF_API_TOKEN" \
+  --set "env[0].valueFrom.secretKeyRef.name=cloudflare-api-token" \
+  --set "env[0].valueFrom.secretKeyRef.key=cloudflare_api_token"
+```
+
+### 5. Apply NDK manifests
 ```bash
 # Cluster A — source
 export KUBECONFIG=~/.kube/manager/nkp-wlc-a-kubeconfig.conf
@@ -53,7 +110,7 @@ kubectl apply -f ndk-sealed/refgrant.yaml   # ⚠️ required on BOTH clusters
 > **⚠️ Lesson learned:** `refgrant.yaml` must be applied on **both** clusters.
 > Without it on cluster A, failback will fail with "Unauthorised to access the ApplicationSnapshot".
 
-### 4. Deploy the app and seed data
+### 6. Deploy the app and seed data
 ```bash
 export KUBECONFIG=~/.kube/manager/nkp-wlc-a-kubeconfig.conf
 helm install scuba deploy/charts/scuba-divelog --namespace miriam-scuba-sealed
@@ -68,11 +125,15 @@ helm install scuba deploy/charts/scuba-divelog --namespace miriam-scuba-sealed
 > Check: `kubectl get applicationsnapshotreplications -n miriam-scuba-sealed`
 
 ```bash
-# 1. Get the latest snapshot name on cluster B
+# 1. Uninstall helm release from cluster A (prevents "resources already exist" error)
+export KUBECONFIG=~/.kube/manager/nkp-wlc-a-kubeconfig.conf
+helm uninstall scuba -n miriam-scuba-sealed
+
+# 2. Get the latest snapshot name on cluster B
 export KUBECONFIG=~/.kube/manager/nkp-wlc-b-kubeconfig.conf
 kubectl get applicationsnapshots -n miriam-backup-sealed
 
-# 2. Apply the restore (replace <SNAPSHOT-NAME> with the latest)
+# 3. Apply the restore (replace <SNAPSHOT-NAME> with the latest READY-TO-USE one)
 kubectl apply -f - <<EOF
 apiVersion: dataservices.nutanix.com/v1alpha1
 kind: ApplicationSnapshotRestore
@@ -84,23 +145,26 @@ spec:
   applicationSnapshotNamespace: miriam-backup-sealed
 EOF
 
-# 3. Watch restore progress
+# 4. Watch restore progress
 kubectl get applicationsnapshotrestore restore-failover -n miriam-scuba-sealed -w
+
+# 5. Verify DNS updated automatically
+dig +short scubadivelog.online @8.8.8.8   # should return 10.38.48.147
 ```
 
 ---
 
 ## Failback (B → A)
 
-> ⚠️ Before restoring, make sure no app resources exist on cluster A.
-> If the helm release is still installed: `helm uninstall scuba -n miriam-scuba-sealed`
-
 ```bash
-# 1. Get the latest snapshot name on cluster A
+# 1. Uninstall helm release from cluster A if present
 export KUBECONFIG=~/.kube/manager/nkp-wlc-a-kubeconfig.conf
+helm uninstall scuba -n miriam-scuba-sealed 2>/dev/null || true
+
+# 2. Get the latest snapshot name on cluster A
 kubectl get applicationsnapshots -n miriam-backup-sealed
 
-# 2. Apply the restore (replace <SNAPSHOT-NAME> with the latest)
+# 3. Apply the restore (replace <SNAPSHOT-NAME> with the latest READY-TO-USE one)
 kubectl apply -f - <<EOF
 apiVersion: dataservices.nutanix.com/v1alpha1
 kind: ApplicationSnapshotRestore
@@ -112,15 +176,12 @@ spec:
   applicationSnapshotNamespace: miriam-backup-sealed
 EOF
 
-# 3. Watch restore progress
+# 4. Watch restore progress
 kubectl get applicationsnapshotrestore restore-failback -n miriam-scuba-sealed -w
+
+# 5. Verify DNS updated automatically
+dig +short scubadivelog.online @8.8.8.8   # should return 10.38.48.141
 ```
-
----
-
-## Access the app
-- Cluster A: http://10.38.48.141
-- Cluster B: http://10.38.48.147
 
 ---
 
@@ -131,5 +192,6 @@ kubectl get applicationsnapshotrestore restore-failback -n miriam-scuba-sealed -
 | Restore fails: "Unauthorised to access ApplicationSnapshot" | ReferenceGrant missing | `kubectl apply -f ndk-sealed/refgrant.yaml` on the target cluster |
 | Restore fails: "Resources already exist" | Helm release still installed | `helm uninstall scuba -n miriam-scuba-sealed` before restoring |
 | MySQL pod: "secret not found" | SealedSecrets not labelled | Ensure `app.kubernetes.io/instance: scuba` label is on SealedSecret templates |
-| 404 on browser | Wrong ingress hostname after restore | Ingress uses empty host — should resolve automatically |
+| ExternalDNS not updating DNS | Wrong A record exists in Cloudflare | Delete existing A record manually, ExternalDNS will recreate it |
+| DNS resolves to Cloudflare IPs | Proxying enabled | Set DNS-only (grey cloud) on the A record in Cloudflare |
 | "No available server" | Two wildcard ingresses conflicting | Annotate v2 ingress: `kubectl annotate ingress scuba -n miriam-scuba traefik.ingress.kubernetes.io/router.entrypoints=none` |

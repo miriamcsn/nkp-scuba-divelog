@@ -45,7 +45,7 @@ frontend:
 ingress:
   enabled: true
   className: kommander-traefik
-  host: ""            # leave empty — matches any host on any cluster (no patching needed after failover/failback)
+  host: "scubadivelog.online"
   path: /
   pathType: Prefix
 
