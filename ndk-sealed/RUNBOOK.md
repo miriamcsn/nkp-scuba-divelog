@@ -161,16 +161,20 @@ helm upgrade --install scuba deploy/charts/scuba-divelog \
   --namespace miriam-scuba-sealed \
   --force-conflicts
 
-# 7. Verify DNS updated automatically (ExternalDNS syncs every ~1 min)
-dig +short scubadivelog.online @8.8.8.8   # should return 10.38.48.147
+# 7. Patch Traefik TLS annotations (needed if snapshot was taken before v3 TLS fix)
+kubectl annotate ingress scuba -n miriam-scuba-sealed \
+  "traefik.ingress.kubernetes.io/router.tls=true" \
+  "traefik.ingress.kubernetes.io/router.entrypoints=websecure" \
+  --overwrite
 
-# 8. Verify app is accessible
-# ⚠️ Traefik forces HTTPS — use https://scubadivelog.online (accept the self-signed cert warning)
-# ⚠️ If you get 404 on HTTPS, patch the ingress manually:
-#    kubectl annotate ingress scuba -n miriam-scuba-sealed \
-#      "traefik.ingress.kubernetes.io/router.tls=true" \
-#      "traefik.ingress.kubernetes.io/router.entrypoints=websecure"
-#    (This is already baked into the Helm chart — only needed if restoring from an old snapshot)
+# 8. DNS handoff — scale down ExternalDNS on cluster A, scale up on cluster B
+export KUBECONFIG=~/.kube/manager/nkp-wlc-a-kubeconfig.conf
+kubectl scale deployment external-dns --replicas=0 -n miriam-scuba-sealed
+export KUBECONFIG=~/.kube/manager/nkp-wlc-b-kubeconfig.conf
+kubectl scale deployment external-dns --replicas=1 -n miriam-scuba-sealed
+# ⚠️ Then delete the A record in Cloudflare DNS — ExternalDNS will recreate it pointing to 10.38.48.147
+
+# 9. Verify app is accessible at https://scubadivelog.online
 ```
 
 ---
@@ -207,7 +211,20 @@ helm upgrade --install scuba deploy/charts/scuba-divelog \
   --namespace miriam-scuba-sealed \
   --force-conflicts
 
-# 6. Clean up cluster B — remove app resources now that app is back on A
+# 6. Patch Traefik TLS annotations (needed if snapshot was taken before v3 TLS fix)
+kubectl annotate ingress scuba -n miriam-scuba-sealed \
+  "traefik.ingress.kubernetes.io/router.tls=true" \
+  "traefik.ingress.kubernetes.io/router.entrypoints=websecure" \
+  --overwrite
+
+# 7. DNS handoff — scale down ExternalDNS on cluster B, scale up on cluster A
+export KUBECONFIG=~/.kube/manager/nkp-wlc-b-kubeconfig.conf
+kubectl scale deployment external-dns --replicas=0 -n miriam-scuba-sealed
+export KUBECONFIG=~/.kube/manager/nkp-wlc-a-kubeconfig.conf
+kubectl scale deployment external-dns --replicas=1 -n miriam-scuba-sealed
+# ⚠️ Then delete the A record in Cloudflare DNS — ExternalDNS will recreate it pointing to 10.38.48.141
+
+# 8. Clean up cluster B — remove app resources now that app is back on A
 #    ✅ sealed-secrets and external-dns pods must stay running — do NOT delete them
 export KUBECONFIG=~/.kube/manager/nkp-wlc-b-kubeconfig.conf
 helm uninstall scuba -n miriam-scuba-sealed 2>/dev/null || true
