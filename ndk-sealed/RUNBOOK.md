@@ -134,8 +134,7 @@ kubectl delete pvc data-scuba-mysql-0 -n miriam-scuba-sealed 2>/dev/null || true
 #    ✅ sealed-secrets and external-dns pods must stay running — do NOT delete them
 export KUBECONFIG=~/.kube/manager/nkp-wlc-b-kubeconfig.conf
 helm uninstall scuba -n miriam-scuba-sealed 2>/dev/null || true
-kubectl delete deploy,statefulset,svc,ingress,configmap,pvc,sealedsecret \
-  -n miriam-scuba-sealed -l app.kubernetes.io/instance=scuba 2>/dev/null || true
+kubectl delete pvc data-scuba-mysql-0 -n miriam-scuba-sealed 2>/dev/null || true
 
 # 3. Get the latest snapshot name on cluster B
 kubectl get applicationsnapshots -n miriam-backup-sealed
@@ -228,8 +227,7 @@ kubectl scale deployment external-dns --replicas=1 -n miriam-scuba-sealed
 #    ✅ sealed-secrets and external-dns pods must stay running — do NOT delete them
 export KUBECONFIG=~/.kube/manager/nkp-wlc-b-kubeconfig.conf
 helm uninstall scuba -n miriam-scuba-sealed 2>/dev/null || true
-kubectl delete deploy,statefulset,svc,ingress,configmap,pvc,sealedsecret \
-  -n miriam-scuba-sealed -l app.kubernetes.io/instance=scuba 2>/dev/null || true
+kubectl delete pvc data-scuba-mysql-0 -n miriam-scuba-sealed 2>/dev/null || true
 
 # 7. Verify DNS updated automatically (ExternalDNS syncs every ~1 min)
 dig +short scubadivelog.online @8.8.8.8   # should return 10.38.48.141
