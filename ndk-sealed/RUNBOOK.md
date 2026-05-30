@@ -138,6 +138,7 @@ kubectl get applicationsnapshots -n miriam-backup-sealed
 
 # 3. Apply the restore (replace <SNAPSHOT-NAME> with the latest READY-TO-USE one)
 export KUBECONFIG=~/.kube/manager/nkp-wlc-b-kubeconfig.conf
+kubectl delete applicationsnapshotrestore restore-failover -n miriam-scuba-sealed 2>/dev/null || true
 kubectl apply -f - <<EOF
 apiVersion: dataservices.nutanix.com/v1alpha1
 kind: ApplicationSnapshotRestore
@@ -178,6 +179,7 @@ kubectl delete pvc data-scuba-mysql-0 -n miriam-scuba-sealed 2>/dev/null || true
 kubectl get applicationsnapshots -n miriam-backup-sealed
 
 # 3. Apply the restore (replace <SNAPSHOT-NAME> with the latest READY-TO-USE one)
+kubectl delete applicationsnapshotrestore restore-failback -n miriam-scuba-sealed 2>/dev/null || true
 kubectl apply -f - <<EOF
 apiVersion: dataservices.nutanix.com/v1alpha1
 kind: ApplicationSnapshotRestore
