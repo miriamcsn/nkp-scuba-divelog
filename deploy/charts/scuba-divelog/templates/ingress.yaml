@@ -5,6 +5,9 @@ metadata:
   name: {{ .Release.Name }}
   labels:
     {{- include "scuba-divelog.labels" . | nindent 4 }}
+  annotations:
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.entrypoints: "websecure"
 spec:
   ingressClassName: {{ .Values.ingress.className }}
   rules:

@@ -161,8 +161,16 @@ helm upgrade --install scuba deploy/charts/scuba-divelog \
   --namespace miriam-scuba-sealed \
   --force-conflicts
 
-# 7. Verify DNS updated automatically
+# 7. Verify DNS updated automatically (ExternalDNS syncs every ~1 min)
 dig +short scubadivelog.online @8.8.8.8   # should return 10.38.48.147
+
+# 8. Verify app is accessible
+# ⚠️ Traefik forces HTTPS — use https://scubadivelog.online (accept the self-signed cert warning)
+# ⚠️ If you get 404 on HTTPS, patch the ingress manually:
+#    kubectl annotate ingress scuba -n miriam-scuba-sealed \
+#      "traefik.ingress.kubernetes.io/router.tls=true" \
+#      "traefik.ingress.kubernetes.io/router.entrypoints=websecure"
+#    (This is already baked into the Helm chart — only needed if restoring from an old snapshot)
 ```
 
 ---
@@ -206,8 +214,10 @@ helm uninstall scuba -n miriam-scuba-sealed 2>/dev/null || true
 kubectl delete deploy,statefulset,svc,ingress,configmap,pvc,sealedsecret \
   -n miriam-scuba-sealed -l app.kubernetes.io/instance=scuba 2>/dev/null || true
 
-# 7. Verify DNS updated automatically
+# 7. Verify DNS updated automatically (ExternalDNS syncs every ~1 min)
 dig +short scubadivelog.online @8.8.8.8   # should return 10.38.48.141
+
+# 8. Verify app is accessible at https://scubadivelog.online
 ```
 
 ---
@@ -220,5 +230,7 @@ dig +short scubadivelog.online @8.8.8.8   # should return 10.38.48.141
 | Restore fails: "Resources already exist" | Helm release still installed | `helm uninstall scuba -n miriam-scuba-sealed` before restoring |
 | MySQL pod: "secret not found" | SealedSecrets not labelled | Ensure `app.kubernetes.io/instance: scuba` label is on SealedSecret templates |
 | ExternalDNS not updating DNS | Wrong A record exists in Cloudflare | Delete existing A record manually, ExternalDNS will recreate it |
+| ExternalDNS says "all records up to date" but wrong IP | Stale TXT ownership records in Cloudflare | Delete all TXT records containing `external-dns` in Cloudflare, then delete the A record — ExternalDNS recreates both |
 | DNS resolves to Cloudflare IPs | Proxying enabled | Set DNS-only (grey cloud) on the A record in Cloudflare |
+| 404 on https://scubadivelog.online after restore | Traefik TLS annotations missing (old snapshot) | `kubectl annotate ingress scuba -n miriam-scuba-sealed "traefik.ingress.kubernetes.io/router.tls=true" "traefik.ingress.kubernetes.io/router.entrypoints=websecure"` |
 | "No available server" | Two wildcard ingresses conflicting | Annotate v2 ingress: `kubectl annotate ingress scuba -n miriam-scuba traefik.ingress.kubernetes.io/router.entrypoints=none` |
