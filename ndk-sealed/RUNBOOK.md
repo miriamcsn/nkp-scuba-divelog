@@ -130,7 +130,8 @@ export KUBECONFIG=~/.kube/manager/nkp-wlc-a-kubeconfig.conf
 helm uninstall scuba -n miriam-scuba-sealed 2>/dev/null || true
 kubectl delete pvc data-scuba-mysql-0 -n miriam-scuba-sealed 2>/dev/null || true
 
-# 2. Clean up cluster B — remove any leftover resources from previous failover
+# 2. Clean up cluster B — remove any leftover app resources from previous failover
+#    ✅ sealed-secrets and external-dns pods must stay running — do NOT delete them
 export KUBECONFIG=~/.kube/manager/nkp-wlc-b-kubeconfig.conf
 helm uninstall scuba -n miriam-scuba-sealed 2>/dev/null || true
 kubectl delete deploy,statefulset,svc,ingress,configmap,pvc,sealedsecret \
@@ -198,7 +199,8 @@ helm upgrade --install scuba deploy/charts/scuba-divelog \
   --namespace miriam-scuba-sealed \
   --force-conflicts
 
-# 6. Clean up cluster B — remove resources now that app is back on A
+# 6. Clean up cluster B — remove app resources now that app is back on A
+#    ✅ sealed-secrets and external-dns pods must stay running — do NOT delete them
 export KUBECONFIG=~/.kube/manager/nkp-wlc-b-kubeconfig.conf
 helm uninstall scuba -n miriam-scuba-sealed 2>/dev/null || true
 kubectl delete deploy,statefulset,svc,ingress,configmap,pvc,sealedsecret \
