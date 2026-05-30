@@ -2,7 +2,7 @@ name: Build and Deploy
 
 on:
   push:
-    branches: [main, v3-sealed-secrets]
+    branches: [main, v3-sealed-secrets, v4-sync-replication]
   workflow_dispatch:   # lets you also trigger manually from the Actions tab
 
 env:
