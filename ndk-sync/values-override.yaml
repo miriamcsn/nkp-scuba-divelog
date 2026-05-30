@@ -1,0 +1,9 @@
+# v4 values override — sync replication
+# Apply with: helm install scuba deploy/charts/scuba-divelog \
+#               --namespace miriam-scuba-sync \
+#               -f ndk-sync/values-override.yaml
+
+mysql:
+  persistence:
+    storageClass: "nutanix-volume-sync"   # ⚠️ Metro-enabled storage class
+    size: 8Gi

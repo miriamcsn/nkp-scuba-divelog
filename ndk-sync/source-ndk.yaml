@@ -1,0 +1,44 @@
+apiVersion: dataservices.nutanix.com/v1alpha1
+kind: Application
+metadata:
+  name: scuba-sync
+  namespace: miriam-scuba-sync
+spec:
+  applicationSelector:
+    resourceLabelSelectors:
+    - labelSelector:
+        matchLabels:
+          app.kubernetes.io/instance: scuba
+  start: true
+  useExistingConfig: false
+---
+apiVersion: dataservices.nutanix.com/v1alpha1
+kind: ReplicationTarget
+metadata:
+  name: repl-to-nkp-wlc-b
+  namespace: miriam-scuba-sync
+spec:
+  namespaceName: miriam-backup-sync
+  remoteName: remote-nkp-wlc-b
+---
+apiVersion: dataservices.nutanix.com/v1alpha1
+kind: ProtectionPlan
+metadata:
+  name: pp-scuba-sync
+  namespace: miriam-scuba-sync
+spec:
+  protectionType: sync          # ← key difference from v3
+  replicationConfigs:
+  - replicationTargetName: repl-to-nkp-wlc-b
+  # ⚠️ No JobScheduler or RetentionPolicy needed for sync —
+  #    data is replicated continuously at the storage level
+---
+apiVersion: dataservices.nutanix.com/v1alpha1
+kind: AppProtectionPlan
+metadata:
+  name: appplan-scuba-sync
+  namespace: miriam-scuba-sync
+spec:
+  applicationName: scuba-sync
+  protectionPlanNames:
+  - pp-scuba-sync

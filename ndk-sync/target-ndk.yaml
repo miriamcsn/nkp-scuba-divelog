@@ -1,0 +1,42 @@
+apiVersion: dataservices.nutanix.com/v1alpha1
+kind: Application
+metadata:
+  name: scuba-sync
+  namespace: miriam-scuba-sync
+spec:
+  applicationSelector:
+    resourceLabelSelectors:
+    - labelSelector:
+        matchLabels:
+          app.kubernetes.io/instance: scuba
+  start: true
+  useExistingConfig: false
+---
+apiVersion: dataservices.nutanix.com/v1alpha1
+kind: ReplicationTarget
+metadata:
+  name: repl-to-nkp-wlc-a
+  namespace: miriam-scuba-sync
+spec:
+  namespaceName: miriam-backup-sync
+  remoteName: remote-nkp-wlc-a
+---
+apiVersion: dataservices.nutanix.com/v1alpha1
+kind: ProtectionPlan
+metadata:
+  name: pp-scuba-sync-reverse
+  namespace: miriam-scuba-sync
+spec:
+  protectionType: sync
+  replicationConfigs:
+  - replicationTargetName: repl-to-nkp-wlc-a
+---
+apiVersion: dataservices.nutanix.com/v1alpha1
+kind: AppProtectionPlan
+metadata:
+  name: appplan-scuba-sync-reverse
+  namespace: miriam-scuba-sync
+spec:
+  applicationName: scuba-sync
+  protectionPlanNames:
+  - pp-scuba-sync-reverse
