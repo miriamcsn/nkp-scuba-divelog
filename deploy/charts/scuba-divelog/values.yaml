@@ -45,7 +45,7 @@ frontend:
 ingress:
   enabled: true
   className: kommander-traefik
-  host: ""            # leave empty to match any host (we'll hit the LoadBalancer IP directly)
+  host: ""            # leave empty — matches any host on any cluster (no patching needed after failover/failback)
   path: /
   pathType: Prefix
 
