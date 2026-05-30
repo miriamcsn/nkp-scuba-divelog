@@ -148,7 +148,13 @@ EOF
 # 4. Watch restore progress
 kubectl get applicationsnapshotrestore restore-failover -n miriam-scuba-sealed -w
 
-# 5. Verify DNS updated automatically
+# 5. Force Helm to take ownership of restored resources
+export KUBECONFIG=~/.kube/manager/nkp-wlc-b-kubeconfig.conf
+helm upgrade --install scuba deploy/charts/scuba-divelog \
+  --namespace miriam-scuba-sealed \
+  --force-conflicts
+
+# 6. Verify DNS updated automatically
 dig +short scubadivelog.online @8.8.8.8   # should return 10.38.48.147
 ```
 
@@ -179,7 +185,13 @@ EOF
 # 4. Watch restore progress
 kubectl get applicationsnapshotrestore restore-failback -n miriam-scuba-sealed -w
 
-# 5. Verify DNS updated automatically
+# 5. Force Helm to take ownership of restored resources
+export KUBECONFIG=~/.kube/manager/nkp-wlc-a-kubeconfig.conf
+helm upgrade --install scuba deploy/charts/scuba-divelog \
+  --namespace miriam-scuba-sealed \
+  --force-conflicts
+
+# 6. Verify DNS updated automatically
 dig +short scubadivelog.online @8.8.8.8   # should return 10.38.48.141
 ```
 
