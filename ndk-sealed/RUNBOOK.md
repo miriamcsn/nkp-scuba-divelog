@@ -129,11 +129,15 @@ helm install scuba deploy/charts/scuba-divelog --namespace miriam-scuba-sealed
 export KUBECONFIG=~/.kube/manager/nkp-wlc-a-kubeconfig.conf
 helm uninstall scuba -n miriam-scuba-sealed
 
-# 2. Get the latest snapshot name on cluster B
+# 2. Delete the MySQL PVC (NDK cannot restore over an existing PVC)
+kubectl delete pvc data-scuba-mysql-0 -n miriam-scuba-sealed
+
+# 3. Get the latest snapshot name on cluster B
 export KUBECONFIG=~/.kube/manager/nkp-wlc-b-kubeconfig.conf
 kubectl get applicationsnapshots -n miriam-backup-sealed
 
 # 3. Apply the restore (replace <SNAPSHOT-NAME> with the latest READY-TO-USE one)
+export KUBECONFIG=~/.kube/manager/nkp-wlc-b-kubeconfig.conf
 kubectl apply -f - <<EOF
 apiVersion: dataservices.nutanix.com/v1alpha1
 kind: ApplicationSnapshotRestore
@@ -167,7 +171,10 @@ dig +short scubadivelog.online @8.8.8.8   # should return 10.38.48.147
 export KUBECONFIG=~/.kube/manager/nkp-wlc-a-kubeconfig.conf
 helm uninstall scuba -n miriam-scuba-sealed 2>/dev/null || true
 
-# 2. Get the latest snapshot name on cluster A
+# 2. Delete the MySQL PVC
+kubectl delete pvc data-scuba-mysql-0 -n miriam-scuba-sealed 2>/dev/null || true
+
+# 3. Get the latest snapshot name on cluster A
 kubectl get applicationsnapshots -n miriam-backup-sealed
 
 # 3. Apply the restore (replace <SNAPSHOT-NAME> with the latest READY-TO-USE one)
