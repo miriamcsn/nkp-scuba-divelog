@@ -30,7 +30,7 @@ backend:
 frontend:
   image:
     repository: scuba-divelog-frontend
-    tag: "0.1.0"
+    tag: "17db1ed"
   replicaCount: 2
   port: 80
   resources:
