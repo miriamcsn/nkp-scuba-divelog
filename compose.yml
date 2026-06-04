@@ -1,0 +1,64 @@
+# Docker Compose for MySQL
+services:
+  mysql:
+    image: docker.io/bitnamilegacy/mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpw
+      MYSQL_DATABASE: divelog
+      MYSQL_USER: divelog
+      MYSQL_PASSWORD: divelog
+    volumes:
+      - mysql-data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-prootpw"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: mysql+pymysql://divelog:divelog@mysql:3306/divelog
+    depends_on:
+      - mysql
+    command: >
+      sh -c "
+        until python -c 'import socket; socket.create_connection((\"mysql\", 3306), timeout=2)' 2>/dev/null; do
+          echo 'waiting for mysql...'; sleep 2;
+        done;
+        exec python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+      "
+    ports:
+      - "8000:8000"
+  frontend:
+    build: ./frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+   
+volumes:
+  mysql-data:
+
+
+# Docker Compose for SQLite
+# services:
+#   backend:
+#     build: ./backend
+#     environment:
+#       DATABASE_URL: sqlite:////data/divelog.db
+#     volumes:
+#       - divelog-data:/data
+#     # No ports section — backend is only reachable inside the compose network
+
+#   frontend:
+#     build: ./frontend
+#     ports:
+#       - "8080:80"   # host port 8080 → container port 80
+#     depends_on:
+#       - backend
+
+# volumes:
+#   divelog-data:

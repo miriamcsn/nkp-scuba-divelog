@@ -1,0 +1,66 @@
+# Image registry + pull policy shared by both components
+image:
+  registry: ghcr.io/miriamcsn
+  pullPolicy: IfNotPresent
+
+# Backend: FastAPI + SQLite, single replica because SQLite is single-writer
+backend:
+  image:
+    repository: scuba-divelog-backend
+    tag: "0.2.0"
+  replicaCount: 1
+  port: 8000
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+  persistence:
+  # v2 uses MySQL for state — no per-pod PVC needed.
+  # The PVC the customer cares about lives on the mysql sub-chart's StatefulSet
+  # (see mysql.primary.persistence below), which is what NDK protects.
+    enabled: false
+    size: 1Gi
+    storageClassName: nutanix-volume
+    mountPath: /data
+
+# Frontend: nginx serving static HTML + proxying /api to the backend
+frontend:
+  image:
+    repository: scuba-divelog-frontend
+    tag: "17db1ed"
+  replicaCount: 2
+  port: 80
+  resources:
+    requests:
+      cpu: 50m
+      memory: 32Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+# Ingress (Traefik via NKP Kommander)
+ingress:
+  enabled: true
+  className: kommander-traefik
+  host: "scubadivelog.online"
+  path: /
+  pathType: Prefix
+
+#mySQL settings for the mysql sub-chart
+mysql:
+  enabled: true
+  image:
+    repository: mysql
+    tag: "8.4"
+    pullPolicy: IfNotPresent
+  auth:
+    rootPassword: ""
+    username: ""
+    password: ""
+    database: ""
+  persistence:
+    storageClass: "nutanix-volume"
+    size: 8Gi

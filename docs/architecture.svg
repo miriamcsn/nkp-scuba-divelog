@@ -1,0 +1,79 @@
+<svg viewBox="0 0 1000 640" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+  <title>NKP Scuba Dive Log — CI/CD Architecture</title>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#475569"/>
+    </marker>
+    <marker id="arrow-cyan" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#06b6d4"/>
+    </marker>
+  </defs>
+  <rect width="1000" height="640" fill="#ffffff"/>
+  <text x="500" y="32" text-anchor="middle" font-size="20" font-weight="700" fill="#0f172a">NKP Scuba Dive Log — CI/CD Architecture</text>
+  <text x="500" y="52" text-anchor="middle" font-size="13" fill="#64748b">git push → automated build → automated deploy to NKP</text>
+  <rect x="30" y="90" width="150" height="70" rx="10" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="105" y="118" text-anchor="middle" font-size="14" font-weight="600" fill="#0f172a">Developer Laptop</text>
+  <text x="105" y="138" text-anchor="middle" font-size="11" fill="#64748b">code · podman · git</text>
+  <rect x="220" y="90" width="150" height="70" rx="10" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="295" y="118" text-anchor="middle" font-size="14" font-weight="600" fill="#0f172a">GitHub Repo</text>
+  <text x="295" y="138" text-anchor="middle" font-size="11" fill="#64748b">main branch</text>
+  <rect x="410" y="90" width="170" height="70" rx="10" fill="#0f172a" stroke="#0f172a" stroke-width="1.5"/>
+  <text x="495" y="118" text-anchor="middle" font-size="14" font-weight="600" fill="#f8fafc">GitHub Actions</text>
+  <text x="495" y="138" text-anchor="middle" font-size="11" fill="#cbd5e1">deploy.yml</text>
+  <line x1="180" y1="125" x2="220" y2="125" stroke="#475569" stroke-width="1.8" marker-end="url(#arrow)"/>
+  <text x="200" y="118" text-anchor="middle" font-size="10" fill="#475569">git push</text>
+  <line x1="370" y1="125" x2="410" y2="125" stroke="#475569" stroke-width="1.8" marker-end="url(#arrow)"/>
+  <text x="390" y="118" text-anchor="middle" font-size="10" fill="#475569">on: push</text>
+  <rect x="610" y="90" width="170" height="60" rx="10" fill="#ecfeff" stroke="#06b6d4" stroke-width="1.8"/>
+  <text x="695" y="115" text-anchor="middle" font-size="13" font-weight="600" fill="#0e7490">Build job</text>
+  <text x="695" y="132" text-anchor="middle" font-size="10" fill="#0e7490">GitHub-hosted runner</text>
+  <rect x="820" y="90" width="150" height="60" rx="10" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
+  <text x="895" y="115" text-anchor="middle" font-size="13" font-weight="600" fill="#92400e">ghcr.io</text>
+  <text x="895" y="132" text-anchor="middle" font-size="10" fill="#92400e">backend + frontend :sha</text>
+  <rect x="610" y="180" width="170" height="60" rx="10" fill="#ecfeff" stroke="#06b6d4" stroke-width="1.8"/>
+  <text x="695" y="205" text-anchor="middle" font-size="13" font-weight="600" fill="#0e7490">Deploy job</text>
+  <text x="695" y="222" text-anchor="middle" font-size="10" fill="#0e7490">Self-hosted (bastion)</text>
+  <line x1="580" y1="120" x2="610" y2="120" stroke="#475569" stroke-width="1.8" marker-end="url(#arrow)"/>
+  <line x1="495" y1="160" x2="495" y2="210" stroke="#475569" stroke-width="1.8"/>
+  <line x1="495" y1="210" x2="610" y2="210" stroke="#475569" stroke-width="1.8" marker-end="url(#arrow)"/>
+  <line x1="780" y1="120" x2="820" y2="120" stroke="#06b6d4" stroke-width="1.8" marker-end="url(#arrow-cyan)"/>
+  <text x="800" y="113" text-anchor="middle" font-size="9" fill="#0e7490">push</text>
+  <rect x="220" y="290" width="750" height="280" rx="14" fill="#f8fafc" stroke="#0f172a" stroke-width="2"/>
+  <text x="240" y="318" font-size="14" font-weight="700" fill="#0f172a">NKP Cluster on Nutanix</text>
+  <text x="240" y="335" font-size="11" fill="#64748b">3 control-plane + 4 worker nodes · K8s 1.34 · Rocky 9.7</text>
+  <rect x="260" y="360" width="200" height="60" rx="8" fill="#ecfeff" stroke="#0891b2" stroke-width="1.5"/>
+  <text x="360" y="385" text-anchor="middle" font-size="13" font-weight="600" fill="#0e7490">Traefik Ingress</text>
+  <text x="360" y="403" text-anchor="middle" font-size="10" fill="#0e7490">LB · 10.54.27.133 · TLS</text>
+  <rect x="510" y="360" width="200" height="60" rx="8" fill="#ecfeff" stroke="#06b6d4" stroke-width="1.5"/>
+  <text x="610" y="383" text-anchor="middle" font-size="13" font-weight="600" fill="#0e7490">Frontend</text>
+  <text x="610" y="401" text-anchor="middle" font-size="10" fill="#0e7490">nginx · 2 replicas</text>
+  <rect x="510" y="460" width="200" height="60" rx="8" fill="#ecfeff" stroke="#06b6d4" stroke-width="1.5"/>
+  <text x="610" y="483" text-anchor="middle" font-size="13" font-weight="600" fill="#0e7490">Backend</text>
+  <text x="610" y="501" text-anchor="middle" font-size="10" fill="#0e7490">FastAPI · 1 replica</text>
+  <rect x="760" y="460" width="190" height="60" rx="8" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
+  <text x="855" y="483" text-anchor="middle" font-size="13" font-weight="600" fill="#92400e">PVC · SQLite</text>
+  <text x="855" y="501" text-anchor="middle" font-size="10" fill="#92400e">Nutanix CSI · 1Gi</text>
+  <line x1="460" y1="390" x2="510" y2="390" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="610" y1="420" x2="610" y2="460" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="640" y="445" font-size="9" fill="#475569">/api/*</text>
+  <line x1="710" y1="490" x2="760" y2="490" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="695" y1="240" x2="695" y2="290" stroke="#06b6d4" stroke-width="1.8" marker-end="url(#arrow-cyan)"/>
+  <text x="745" y="270" font-size="10" fill="#0e7490">helm upgrade</text>
+  <path d="M 895 150 Q 895 240 770 360" fill="none" stroke="#d97706" stroke-width="1.6" stroke-dasharray="5,3" marker-end="url(#arrow)"/>
+  <text x="900" y="240" text-anchor="middle" font-size="10" fill="#92400e">image pull</text>
+  <rect x="30" y="360" width="150" height="80" rx="10" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="105" y="392" text-anchor="middle" font-size="14" font-weight="600" fill="#0f172a">User Browser</text>
+  <text x="105" y="412" text-anchor="middle" font-size="11" fill="#64748b">https://10.54.27.133</text>
+  <line x1="180" y1="390" x2="260" y2="390" stroke="#475569" stroke-width="1.8" marker-end="url(#arrow)"/>
+  <text x="220" y="382" text-anchor="middle" font-size="10" fill="#475569">HTTPS</text>
+  <g transform="translate(30, 590)">
+    <rect x="0" y="0" width="14" height="10" fill="#ecfeff" stroke="#06b6d4" stroke-width="1.2"/>
+    <text x="20" y="9" font-size="10" fill="#0f172a">App I built</text>
+    <rect x="120" y="0" width="14" height="10" fill="#fef3c7" stroke="#d97706" stroke-width="1.2"/>
+    <text x="140" y="9" font-size="10" fill="#0f172a">Persistent / external storage</text>
+    <rect x="320" y="0" width="14" height="10" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.2"/>
+    <text x="340" y="9" font-size="10" fill="#0f172a">External actor</text>
+    <rect x="440" y="0" width="14" height="10" fill="#0f172a"/>
+    <text x="460" y="9" font-size="10" fill="#0f172a">Automation orchestrator</text>
+  </g>
+</svg>

@@ -1,0 +1,18 @@
+🤿 Scuba Dive Log installed!
+
+Release:   {{ .Release.Name }}
+Namespace: {{ .Release.Namespace }}
+
+Wait for pods:
+  kubectl -n {{ .Release.Namespace }} get pods -w
+
+Find the cluster's Traefik LoadBalancer IP:
+  kubectl get svc -n kommander kommander-traefik
+
+Then open in your browser:
+  http://<LOADBALANCER-IP>/
+
+You should see the scuba-themed page. Add a diver, a site, log a dive.
+
+To uninstall:
+  helm uninstall {{ .Release.Name }} -n {{ .Release.Namespace }}

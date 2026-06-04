@@ -1,0 +1,17 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  annotations:
+    sealedsecrets.bitnami.com/namespace-wide: "true"
+  name: cloudflare-api-token
+  namespace: miriam-scuba-sealed
+spec:
+  encryptedData:
+    cloudflare_api_token: AgANN08/wsaIwtdOUX8pYPnOBIEEEXouCipVVb8rqYcedikgt2y/4eh1mp95hVwuJvqVGs628BYHmWs2LUuozMVDd2c653Xvtv+qzbjNQkI8a0u91JhFRt4d6qC+/XCFh/zUdq4uwLcBH4Og5E3xVvkhr2lVt506GCr5tP7+ZyEcprRi3q9AO9GsO5GQmeZ79wkArNGkZ58pqSBMGbdjdca6OffWbkUPDNkzFtz9/3DKl89teFSFLmtK95m8qFL3zv3fnwzhD4lpPmdVPshVsP3MWR9f7F16arO+5ZhNLnM337tThh6k1EwNRAQNy2NS3XFsBHp65Niur5+ffUGRkhmuOFFOqHSCd986vmPlJ0jKKc3gF+1PWu8vJ1ZBxcD03t7C9AC+ML2FJC/ZpjP2iE84PhTGMSdf22B+9+e84Rd1DyDsmAj1L/sU5eYIQSsaqWGvhl9c2bc5oWcZPuHtVTJGf8XBm5aKjpuuStJV6LK5Fb1DE5MMjaYYpNX0rKQG23JTD4faZ4j5osYiHvYwJI8os0YBwp1A0BFdvjgYJ1MMP2enp6NHqXhUzKLSaeyhJYMzS8tlQREDxOChPcO+vs9mCVr5td/UuhFqvvqiaTbffxlp3L6sLto2dDl89FpuJgHL2iQIQFy02gsRPCLR+7xzjeG4VtyEXo7+Xcesfdyhrjo7Wo8WFMybehslZYCSFV9a8CMR4SYeWzvGGaV/RXWPPfU6/lFxY7wdp0pr0gvJpvZ8H9/7DcAfBXftL8DzBZlDgnzCoA==
+  template:
+    metadata:
+      annotations:
+        sealedsecrets.bitnami.com/namespace-wide: "true"
+      name: cloudflare-api-token
+      namespace: miriam-scuba-sealed
