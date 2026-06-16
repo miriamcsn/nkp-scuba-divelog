@@ -57,7 +57,7 @@ The chart ships `SealedSecret` objects, so the controller must exist before the
 app is deployed.
 
 ```bash
-helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
+helm repo add sealed-secrets https://bitnami.github.io/sealed-secrets
 helm repo update
 helm install sealed-secrets sealed-secrets/sealed-secrets \
   --namespace sealed-secrets --create-namespace
