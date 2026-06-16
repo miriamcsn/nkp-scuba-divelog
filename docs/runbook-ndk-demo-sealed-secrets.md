@@ -79,7 +79,7 @@ kubectl create namespace <backup-namespace>
 
 ### 2. Install Sealed Secrets controller on BOTH clusters
 ```bash
-helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
+helm repo add sealed-secrets https://bitnami.github.io/sealed-secrets
 helm repo update
 
 # Cluster A
