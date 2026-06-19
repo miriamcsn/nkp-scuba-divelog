@@ -1,0 +1,36 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: drift-detector
+  namespace: kommander
+spec:
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: drift-detector
+          restartPolicy: OnFailure
+          containers:
+            - name: drift-detector
+              image: your-registry/drift-detector:latest
+              imagePullPolicy: Always
+              env:
+                - name: PRISM_ENDPOINT
+                  valueFrom:
+                    secretKeyRef:
+                      name: prism-credentials
+                      key: PRISM_ENDPOINT
+                - name: PRISM_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: prism-credentials
+                      key: PRISM_USER
+                - name: PRISM_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: prism-credentials
+                      key: PRISM_PASSWORD
