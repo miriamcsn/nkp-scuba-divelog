@@ -2,12 +2,12 @@ apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: scuba
-  namespace: miriam-scuba-demo
+  namespace: miriam-scuba-sealed
 spec:
   interval: 10m
   releaseName: scuba
-  targetNamespace: miriam-scuba-demo
-  storageNamespace: miriam-scuba-demo
+  targetNamespace: miriam-scuba-sealed
+  storageNamespace: miriam-scuba-sealed
   chart:
     spec:
       chart: deploy/charts/scuba-divelog
