@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: miriam-scuba-demo
+  name: miriam-scuba-sealed
   labels:
     app.kubernetes.io/managed-by: flux
     purpose: scuba-demo
