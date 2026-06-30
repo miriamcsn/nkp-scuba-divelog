@@ -1,0 +1,32 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: scuba
+  namespace: miriam-scuba-sealed
+spec:
+  interval: 10m
+  releaseName: scuba
+  targetNamespace: miriam-scuba-sealed
+  storageNamespace: miriam-scuba-sealed
+  chart:
+    spec:
+      chart: deploy/charts/scuba-divelog
+      sourceRef:
+        kind: GitRepository
+        name: nkp-scuba-divelog
+        namespace: kommander-flux
+      interval: 5m
+  install:
+    createNamespace: false
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    backend:
+      image:
+        tag: "latest"  # {"$imagepolicy": "kommander-flux:scuba-backend:tag"}
+    frontend:
+      image:
+        tag: "latest"  # {"$imagepolicy": "kommander-flux:scuba-frontend:tag"}
