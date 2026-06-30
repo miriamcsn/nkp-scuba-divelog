@@ -13,8 +13,8 @@ spec:
       chart: deploy/charts/scuba-divelog
       sourceRef:
         kind: GitRepository
-        name: flux-system
-        namespace: flux-system
+        name: nkp-scuba-divelog
+        namespace: kommander-flux
       interval: 5m
   install:
     createNamespace: false
@@ -26,7 +26,7 @@ spec:
   values:
     backend:
       image:
-        tag: "latest"  # {"$imagepolicy": "flux-system:scuba-backend:tag"}
+        tag: "latest"  # {"$imagepolicy": "kommander-flux:scuba-backend:tag"}
     frontend:
       image:
-        tag: "latest"  # {"$imagepolicy": "flux-system:scuba-frontend:tag"}
+        tag: "latest"  # {"$imagepolicy": "kommander-flux:scuba-frontend:tag"}
