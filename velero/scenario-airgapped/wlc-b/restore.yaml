@@ -1,0 +1,11 @@
+apiVersion: velero.io/v1
+kind: Restore
+metadata:
+  name: scuba-restore-from-wlc-a
+  namespace: nkp-flux-provisioned-phvwv-jjxpb
+spec:
+  backupName: scuba-backup-wlc-a-v5
+  storageLocation: default
+  includedNamespaces:
+    - miriam-scuba-demo
+  restorePVs: true

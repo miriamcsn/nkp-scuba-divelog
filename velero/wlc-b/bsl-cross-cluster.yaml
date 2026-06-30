@@ -1,0 +1,19 @@
+apiVersion: velero.io/v1
+kind: BackupStorageLocation
+metadata:
+  name: wlc-a-objects
+  namespace: nkp-flux-provisioned-phvwv-jjxpb
+spec:
+  provider: aws
+  accessMode: ReadOnly
+  credential:
+    name: velero-credentials-wlc-a
+    key: cloud
+  objectStorage:
+    bucket: dkp-velero
+  config:
+    region: dkp-object-store
+    s3ForcePathStyle: "true"
+    s3Url: https://10.38.48.141:8085
+    insecureSkipTLSVerify: "true"
+    checksumAlgorithm: ""

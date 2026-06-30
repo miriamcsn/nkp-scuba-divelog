@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: node-agent
+  namespace: nkp-flux-provisioned-phvwv-jjxpb
+  labels:
+    app.kubernetes.io/name: velero
+    app.kubernetes.io/component: node-agent
+spec:
+  selector:
+    matchLabels:
+      name: node-agent
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        name: node-agent
+        app.kubernetes.io/name: velero
+        app.kubernetes.io/component: node-agent
+    spec:
+      serviceAccountName: velero-server
+      securityContext:
+        runAsUser: 0
+      tolerations:
+        - effect: NoExecute
+          operator: Exists
+        - effect: NoSchedule
+          operator: Exists
+      volumes:
+        - name: host-pods
+          hostPath:
+            path: /var/lib/kubelet/pods
+        - name: scratch
+          emptyDir: {}
+      containers:
+        - name: node-agent
+          image: velero/velero:v1.17.0
+          imagePullPolicy: IfNotPresent
+          command:
+            - /velero
+          args:
+            - node-agent
+            - server
+          env:
+            - name: VELERO_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: GODEBUG
+              value: asyncpreemptoff=1
+          securityContext:
+            privileged: false
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+              add:
+                - SYS_ADMIN
+                - CHOWN
+                - DAC_OVERRIDE
+                - FOWNER
+                - SETGID
+                - SETUID
+          volumeMounts:
+            - name: host-pods
+              mountPath: /host_pods
+              mountPropagation: HostToContainer
+            - name: scratch
+              mountPath: /scratch
+          resources:
+            requests:
+              cpu: 500m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi

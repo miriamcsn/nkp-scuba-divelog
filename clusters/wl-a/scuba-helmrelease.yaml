@@ -1,0 +1,39 @@
+# Deploys the scuba dive-log app into the miriam-scuba-demo namespace on cluster wl-A.
+# Flux pulls the chart from this same Git repo (the flux-system GitRepository
+# created by `flux bootstrap`) and reconciles it on an interval.
+#
+# The two image tags below carry $imagepolicy markers. The ImageUpdateAutomation
+# in image-automation.yaml rewrites them in Git whenever CI pushes a newer image,
+# which makes deploys fully automatic (GitOps pull, no runner pushing to the cluster).
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: scuba
+  namespace: miriam-scuba-demo
+spec:
+  interval: 10m
+  releaseName: scuba          # -> Release.Name = "scuba" (matches secret names scuba-mysql / scuba-app-db)
+  targetNamespace: miriam-scuba-demo
+  storageNamespace: miriam-scuba-demo
+  chart:
+    spec:
+      chart: deploy/charts/scuba-divelog
+      sourceRef:
+        kind: GitRepository
+        name: flux-system
+        namespace: flux-system
+      interval: 5m
+  install:
+    createNamespace: false   # namespace.yaml owns the namespace
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    backend:
+      image:
+        tag: "0.2.0"  # {"$imagepolicy": "flux-system:scuba-backend:tag"}
+    frontend:
+      image:
+        tag: "17db1ed"  # {"$imagepolicy": "flux-system:scuba-frontend:tag"}

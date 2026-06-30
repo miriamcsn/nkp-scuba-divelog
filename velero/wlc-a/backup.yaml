@@ -1,0 +1,11 @@
+apiVersion: velero.io/v1
+kind: Backup
+metadata:
+  name: scuba-backup-wlc-a-v5
+  namespace: nkp-flux-provisioned-phvwv-jjxpb
+spec:
+  includedNamespaces:
+    - miriam-scuba-demo
+  storageLocation: default
+  defaultVolumesToFsBackup: true
+  ttl: 720h0m0s

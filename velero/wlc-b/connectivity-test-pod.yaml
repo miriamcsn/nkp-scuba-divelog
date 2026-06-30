@@ -1,0 +1,48 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: wlc-a-objects-test-creds
+  namespace: nkp-flux-provisioned-phvwv-jjxpb
+type: Opaque
+data:
+  AWS_ACCESS_KEY_ID: WjBOSlNIOTVCNFdFOTIxUjRZTzU=
+  AWS_SECRET_ACCESS_KEY: U2JpSEhEaGhEaDJieW1GZXlZd2JaYkhwSWVOcDJ4eUpmalRXUGZlRA==
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: objects-connectivity-test
+  namespace: nkp-flux-provisioned-phvwv-jjxpb
+spec:
+  restartPolicy: Never
+  containers:
+    - name: aws-cli
+      image: amazon/aws-cli:latest
+      command:
+        - aws
+        - s3
+        - ls
+        - s3://dkp-velero
+        - --endpoint-url=https://10.38.48.141:8085
+        - --no-verify-ssl
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+        limits:
+          cpu: 200m
+          memory: 256Mi
+      env:
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: wlc-a-objects-test-creds
+              key: AWS_ACCESS_KEY_ID
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: wlc-a-objects-test-creds
+              key: AWS_SECRET_ACCESS_KEY
+        - name: AWS_DEFAULT_REGION
+          value: dkp-object-store

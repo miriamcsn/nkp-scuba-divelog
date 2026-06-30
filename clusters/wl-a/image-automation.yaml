@@ -1,0 +1,94 @@
+# Image automation for cluster wl-A: Flux scans GHCR for newer images and writes
+# the new tag back into clusters/wl-a/scuba-helmrelease.yaml (via the $imagepolicy
+# markers), then commits + pushes to main. That commit is reconciled by the
+# HelmRelease -> automatic rollout.
+#
+# These live in flux-system because that's where the image-reflector and
+# image-automation controllers run.
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImageRepository
+metadata:
+  name: scuba-backend
+  namespace: flux-system
+spec:
+  image: ghcr.io/miriamcsn/scuba-divelog-backend
+  interval: 5m
+  # If the GHCR package is PRIVATE, create a pull secret and reference it here:
+  #   kubectl -n flux-system create secret docker-registry ghcr-auth \
+  #     --docker-server=ghcr.io --docker-username=miriamcsn --docker-password=<PAT-with-read:packages>
+  # secretRef:
+  #   name: ghcr-auth
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImagePolicy
+metadata:
+  name: scuba-backend
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: scuba-backend
+  # CI tags images as  main-<unix-timestamp>-<short-sha>  (see .github/workflows/deploy.yml).
+  # We extract the timestamp and pick the numerically largest = newest build.
+  filterTags:
+    pattern: '^main-(?P<ts>[0-9]+)-[a-f0-9]+$'
+    extract: '$ts'
+  policy:
+    numerical:
+      order: asc
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImageRepository
+metadata:
+  name: scuba-frontend
+  namespace: flux-system
+spec:
+  image: ghcr.io/miriamcsn/scuba-divelog-frontend
+  interval: 5m
+  # secretRef:
+  #   name: ghcr-auth
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImagePolicy
+metadata:
+  name: scuba-frontend
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: scuba-frontend
+  filterTags:
+    pattern: '^main-(?P<ts>[0-9]+)-[a-f0-9]+$'
+    extract: '$ts'
+  policy:
+    numerical:
+      order: asc
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta1
+kind: ImageUpdateAutomation
+metadata:
+  name: scuba
+  namespace: flux-system
+spec:
+  interval: 5m
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  git:
+    checkout:
+      ref:
+        branch: main
+    commit:
+      author:
+        name: fluxcdbot
+        email: fluxcdbot@users.noreply.github.com
+      messageTemplate: |
+        chore(images): automated tag bump [wl-a]
+
+        {{ range .Changed.Changes -}}
+        - {{ .OldValue }} -> {{ .NewValue }}
+        {{ end -}}
+    push:
+      branch: main
+  update:
+    path: ./clusters/wl-a
+    strategy: Setters
