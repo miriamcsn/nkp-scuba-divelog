@@ -13,8 +13,20 @@ Push to `main` → GitHub Actions builds and pushes an image to GHCR → Flux (r
 | Tool | Purpose |
 |------|---------|
 | `kubectl` | Talk to the cluster |
+| `helm` | Install Sealed Secrets controller |
 | `kubeseal` | Encrypt secrets for a specific cluster |
 | `git` | Push config to the repo |
+
+**Sealed Secrets must be installed on the target cluster.** NKP does not ship it by default:
+
+```bash
+helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
+helm repo update sealed-secrets
+KUBECONFIG=$KUBECONFIG_PATH helm install sealed-secrets sealed-secrets/sealed-secrets \
+  --namespace sealed-secrets \
+  --create-namespace \
+  --wait
+```
 
 **GitHub PAT required** — needs two permissions:
 - `read:packages` (so Flux can poll GHCR for new image tags)
@@ -204,10 +216,9 @@ This forces the Flux source controller to re-package the chart with the new seal
 (Without this, the source controller may serve a cached tarball with the old secrets.)
 
 ```bash
-# Read the current version from Chart.yaml and bump the patch number
+# Read the version from main (not local — Flux may have pushed commits ahead of you)
 CHART_FILE=$REPO_ROOT/deploy/charts/scuba-divelog/Chart.yaml
-CURRENT=$(grep '^version:' $CHART_FILE | awk '{print $2}')
-# e.g. 0.2.1 → 0.2.2
+CURRENT=$(git show origin/main:deploy/charts/scuba-divelog/Chart.yaml | grep '^version:' | awk '{print $2}')
 NEW=$(echo $CURRENT | awk -F. '{print $1"."$2"."$3+1}')
 sed -i '' "s/^version: .*/version: $NEW/" $CHART_FILE
 echo "Chart bumped: $CURRENT → $NEW"
