@@ -340,8 +340,10 @@ KUBECONFIG=$KUBECONFIG_PATH kubectl get pods -n $APP_NAMESPACE
 
 **Quick access in browser:**
 ```bash
-KUBECONFIG=$KUBECONFIG_PATH kubectl port-forward svc/scuba-frontend 8080:80 -n $APP_NAMESPACE
-# Open http://localhost:8080 — Ctrl+C to stop
+KUBECONFIG=$KUBECONFIG_PATH kubectl port-forward svc/scuba-frontend 8080:80 -n $APP_NAMESPACE &
+# Open http://localhost:8080
+# To stop:
+kill $(lsof -ti:8080)
 ```
 
 ---
