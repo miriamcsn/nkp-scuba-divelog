@@ -26,7 +26,7 @@ spec:
   values:
     backend:
       image:
-        tag: "main-1782819280-f7706e3" # {"$imagepolicy": "kommander-flux:scuba-backend:tag"}
+        tag: "main-1782825005-0494355" # {"$imagepolicy": "kommander-flux:scuba-backend:tag"}
     frontend:
       image:
         tag: "main-1782825005-0494355" # {"$imagepolicy": "kommander-flux:scuba-frontend:tag"}
