@@ -29,4 +29,4 @@ spec:
         tag: "main-1782825236-1ac4af4" # {"$imagepolicy": "kommander-flux:scuba-backend:tag"}
     frontend:
       image:
-        tag: "latest" # {"$imagepolicy": "kommander-flux:scuba-frontend:tag"}
+        tag: "main-1782825236-1ac4af4" # {"$imagepolicy": "kommander-flux:scuba-frontend:tag"}
