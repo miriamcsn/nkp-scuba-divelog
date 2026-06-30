@@ -3,7 +3,7 @@ apiVersion: image.toolkit.fluxcd.io/v1beta2
 kind: ImageRepository
 metadata:
   name: scuba-backend
-  namespace: flux-system
+  namespace: kommander-flux
 spec:
   image: ghcr.io/miriamcsn/scuba-divelog-backend
   interval: 5m
@@ -17,7 +17,7 @@ apiVersion: image.toolkit.fluxcd.io/v1beta2
 kind: ImagePolicy
 metadata:
   name: scuba-backend
-  namespace: flux-system
+  namespace: kommander-flux
 spec:
   imageRepositoryRef:
     name: scuba-backend
@@ -32,7 +32,7 @@ apiVersion: image.toolkit.fluxcd.io/v1beta2
 kind: ImageRepository
 metadata:
   name: scuba-frontend
-  namespace: flux-system
+  namespace: kommander-flux
 spec:
   image: ghcr.io/miriamcsn/scuba-divelog-frontend
   interval: 5m
@@ -43,7 +43,7 @@ apiVersion: image.toolkit.fluxcd.io/v1beta2
 kind: ImagePolicy
 metadata:
   name: scuba-frontend
-  namespace: flux-system
+  namespace: kommander-flux
 spec:
   imageRepositoryRef:
     name: scuba-frontend
@@ -58,12 +58,12 @@ apiVersion: image.toolkit.fluxcd.io/v1beta1
 kind: ImageUpdateAutomation
 metadata:
   name: scuba
-  namespace: flux-system
+  namespace: kommander-flux
 spec:
   interval: 5m
   sourceRef:
     kind: GitRepository
-    name: flux-system
+    name: nkp-scuba-divelog
   git:
     checkout:
       ref:
