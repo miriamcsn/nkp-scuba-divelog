@@ -2,3 +2,4 @@
 .claude/
 .internal/
 velero/wlc-b/secret-wlc-a-creds.yaml
+velero/scuba-velero/credentials-velero

@@ -1,0 +1,13 @@
+# POC restore: same cluster, different namespace — stands in for a cross-cluster
+# migration restore (which uses this exact same Restore spec, minus namespaceMapping,
+# run against a second cluster pointed at the same bucket). See runbook-velero.md.
+apiVersion: velero.io/v1
+kind: Restore
+metadata:
+  name: scuba-restore-01
+  namespace: velero
+spec:
+  backupName: scuba-backup-01
+  namespaceMapping:
+    miriam-velero: miriam-velero-restored
+  restorePVs: true

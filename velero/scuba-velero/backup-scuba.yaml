@@ -1,0 +1,15 @@
+# Backs up the scuba app (frontend + backend + MySQL, including the MySQL PVC)
+# out of the miriam-velero namespace, using CSI snapshots via the Nutanix CSI
+# driver (see the labeled VolumeSnapshotClass step in runbook-velero.md).
+apiVersion: velero.io/v1
+kind: Backup
+metadata:
+  name: scuba-backup-01
+  namespace: velero
+spec:
+  includedNamespaces:
+  - miriam-velero
+  snapshotVolumes: true
+  defaultVolumesToFsBackup: false   # rely on CSI snapshots, not Kopia file-system backup
+  storageLocation: default
+  ttl: 720h0m0s                     # 30 days

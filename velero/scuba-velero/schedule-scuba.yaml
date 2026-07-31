@@ -1,0 +1,21 @@
+# Daily backup of the scuba app in miriam-velero, same shape as backup-scuba.yaml
+# (CSI snapshots, not Kopia fs-backup). Each run creates a Backup named
+# scuba-daily-<timestamp>; Velero garbage-collects ones past their ttl automatically.
+#
+# ttl is derived from schedule frequency to approximate "keep last 7 backups":
+# daily runs x 7 days = 168h. This is an approximation, not an exact count — see
+# the "Schedule daily backups" section in runbook-velero.md for the exact-count option.
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: scuba-daily
+  namespace: velero
+spec:
+  schedule: "0 2 * * *"   # 02:00 daily
+  template:
+    includedNamespaces:
+    - miriam-velero
+    snapshotVolumes: true
+    defaultVolumesToFsBackup: false   # rely on CSI snapshots, not Kopia file-system backup
+    storageLocation: default
+    ttl: 168h0m0s                     # 7 days ~= last 7 daily backups

@@ -1,0 +1,18 @@
+# Reference copy of the BackupStorageLocation that `velero install` creates from
+# the --bucket / --backup-location-config flags (see runbook-velero.md). Not meant to be
+# applied directly on first install — it's here so the S3-compatible config for
+# Nutanix Objects is visible in git and easy to recreate/diff later.
+apiVersion: velero.io/v1
+kind: BackupStorageLocation
+metadata:
+  name: default
+  namespace: velero
+spec:
+  provider: aws
+  objectStorage:
+    bucket: velero
+  config:
+    region: us-east-1                      # confirmed: this Nutanix Objects store expects the AWS-style default region name
+    s3ForcePathStyle: "true"                # confirmed required: velero.objects.ntnxlab.local (virtual-hosted style) doesn't resolve
+    s3Url: https://objects.ntnxlab.local
+    insecureSkipTLSVerify: "true"           # confirmed: objects.ntnxlab.local presents a self-signed/internal CA cert
