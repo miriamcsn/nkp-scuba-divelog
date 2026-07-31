@@ -1,0 +1,85 @@
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImageRepository
+metadata:
+  name: scuba-backend
+  namespace: kommander-flux
+spec:
+  image: ghcr.io/miriamcsn/scuba-divelog-backend
+  interval: 5m
+  # If the GHCR package is PRIVATE, create a pull secret and reference it here:
+  #   kubectl -n flux-system create secret docker-registry ghcr-auth \
+  #     --docker-server=ghcr.io --docker-username=miriamcsn --docker-password=<PAT-with-read:packages>
+  # secretRef:
+  #   name: ghcr-auth
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImagePolicy
+metadata:
+  name: scuba-backend
+  namespace: kommander-flux
+spec:
+  imageRepositoryRef:
+    name: scuba-backend
+  filterTags:
+    pattern: '^main-(?P<ts>[0-9]+)-[a-f0-9]+$'
+    extract: '$ts'
+  policy:
+    numerical:
+      order: asc
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImageRepository
+metadata:
+  name: scuba-frontend
+  namespace: kommander-flux
+spec:
+  image: ghcr.io/miriamcsn/scuba-divelog-frontend
+  interval: 5m
+  # secretRef:
+  #   name: ghcr-auth
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImagePolicy
+metadata:
+  name: scuba-frontend
+  namespace: kommander-flux
+spec:
+  imageRepositoryRef:
+    name: scuba-frontend
+  filterTags:
+    pattern: '^main-(?P<ts>[0-9]+)-[a-f0-9]+$'
+    extract: '$ts'
+  policy:
+    numerical:
+      order: asc
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImageUpdateAutomation
+metadata:
+  name: scuba
+  namespace: kommander-flux
+spec:
+  interval: 5m
+  sourceRef:
+    kind: GitRepository
+    name: nkp-scuba-divelog
+  git:
+    checkout:
+      ref:
+        branch: main
+    commit:
+      author:
+        name: fluxcdbot
+        email: fluxcdbot@users.noreply.github.com
+      messageTemplate: |
+        chore(images): automated tag bump [nkp-c]
+
+        {{ range .Changed.Changes -}}
+        - {{ .OldValue }} -> {{ .NewValue }}
+        {{ end -}}
+    push:
+      branch: main
+  update:
+    path: ./clusters/nkp-c
+    strategy: Setters
