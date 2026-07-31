@@ -84,13 +84,11 @@ helm repo update
 
 # Cluster A
 export KUBECONFIG=~/.kube/<cluster-a>-kubeconfig.conf
-helm install sealed-secrets sealed-secrets/sealed-secrets \
-  --namespace <app-namespace> --version 2.17.2
+helm install sealed-secrets sealed-secrets/sealed-secrets --namespace <app-namespace> --version 2.17.2
 
 # Cluster B
 export KUBECONFIG=~/.kube/<cluster-b>-kubeconfig.conf
-helm install sealed-secrets sealed-secrets/sealed-secrets \
-  --namespace <app-namespace> --version 2.17.2
+helm install sealed-secrets sealed-secrets/sealed-secrets --namespace <app-namespace> --version 2.17.2
 ```
 
 ### 3. Apply sealed secrets (Cloudflare token + app secrets)
