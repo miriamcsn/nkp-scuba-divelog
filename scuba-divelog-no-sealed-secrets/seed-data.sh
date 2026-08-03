@@ -1,15 +1,75 @@
 #!/usr/bin/env bash
 # Seeds sample divers, dive sites, and dives into a running scuba-divelog
-# instance via its API. Requires curl and jq.
+# instance via its API.
+#
+# Auto-discovers BOTH the target namespace and the Traefik LB IP from the
+# CURRENTLY ACTIVE kubectl context, instead of trusting a hardcoded/default
+# URL or namespace — a stale default is exactly what silently re-seeded the
+# wrong cluster last time.
 #
 # Usage:
-#   ./seed-data.sh [base-url]
+#   ./seed-data.sh [namespace]
 #
-# base-url defaults to https://10.55.86.149 (the it-cluster ingress IP).
+# namespace is optional — if omitted, it's auto-discovered by finding the
+# scuba-divelog frontend Service on the current cluster. Pass it explicitly
+# to disambiguate if the app is installed in more than one namespace.
+# Requires kubectl and jq.
 set -euo pipefail
 
-BASE_URL="${1:-https://10.55.86.149}"
-API="${BASE_URL%/}/api"
+CONTEXT=$(kubectl config current-context)
+echo "kubectl context: $CONTEXT"
+
+if [[ -n "${1:-}" ]]; then
+  NAMESPACE="$1"
+  NS_SOURCE="given"
+  if ! kubectl -n "$NAMESPACE" get svc scuba-frontend >/dev/null 2>&1; then
+    echo "error: no 'scuba-frontend' service in namespace '$NAMESPACE' on context '$CONTEXT'." >&2
+    echo "       is scuba actually installed here? (helm list -n $NAMESPACE)" >&2
+    exit 1
+  fi
+else
+  MATCHES=()
+  while IFS= read -r ns; do
+    [[ -n "$ns" ]] && MATCHES+=("$ns")
+  done < <(kubectl get svc -A \
+    -l app.kubernetes.io/name=scuba-divelog,app.kubernetes.io/component=frontend \
+    -o jsonpath='{range .items[*]}{.metadata.namespace}{"\n"}{end}')
+
+  if [[ ${#MATCHES[@]} -eq 0 ]]; then
+    echo "error: no scuba-divelog frontend service found anywhere on context '$CONTEXT'." >&2
+    echo "       is scuba actually installed here? (helm list -A)" >&2
+    exit 1
+  elif [[ ${#MATCHES[@]} -gt 1 ]]; then
+    echo "error: found scuba-divelog installed in multiple namespaces on context '$CONTEXT':" >&2
+    printf '  - %s\n' "${MATCHES[@]}" >&2
+    echo "       re-run with the one you want: ./seed-data.sh <namespace>" >&2
+    exit 1
+  fi
+  NAMESPACE="${MATCHES[0]}"
+  NS_SOURCE="auto-discovered"
+fi
+
+echo "namespace:        $NAMESPACE ($NS_SOURCE)"
+
+LB_IP=$(kubectl get svc -A -o json \
+  | jq -r '[.items[] | select(.spec.type=="LoadBalancer" and (.metadata.name | test("traefik")))][0].status.loadBalancer.ingress[0].ip // empty')
+
+if [[ -z "$LB_IP" ]]; then
+  echo "error: couldn't find a traefik LoadBalancer service with an external IP on context '$CONTEXT'." >&2
+  exit 1
+fi
+
+BASE_URL="https://${LB_IP}"
+API="${BASE_URL}/api"
+echo "resolved target:  $BASE_URL"
+echo
+
+read -r -p "Seed data into '$NAMESPACE' on '$CONTEXT' ($BASE_URL)? [y/N] " confirm
+if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
+  echo "aborted."
+  exit 1
+fi
+
 CURL=(curl -sk)
 
 post() {
@@ -45,5 +105,5 @@ post /dives "{\"date\":\"2026-06-10T09:00:00\",\"diver_id\":$D1_ID,\"site_id\":$
 post /dives "{\"date\":\"2026-06-14T11:00:00\",\"diver_id\":$D2_ID,\"site_id\":$S1_ID,\"duration_min\":45,\"max_depth_m\":30,\"water_temp_c\":23,\"gas_mix\":\"nitrox32\",\"tank_pressure_start_bar\":210,\"tank_pressure_end_bar\":65,\"buddy\":\"Priya Nair\",\"notes\":\"Deepest dive of the trip, careful with NDL.\",\"rating\":5}" > /dev/null
 post /dives "{\"date\":\"2026-06-18T09:45:00\",\"diver_id\":$D3_ID,\"site_id\":$S2_ID,\"duration_min\":48,\"max_depth_m\":27,\"water_temp_c\":24,\"gas_mix\":\"air\",\"tank_pressure_start_bar\":200,\"tank_pressure_end_bar\":58,\"buddy\":\"Theo Bianchi\",\"notes\":\"First wreck dive, loved it.\",\"rating\":5}" > /dev/null
 
-echo "Done. Seeded 3 divers, 3 sites, 6 dives."
+echo "Done. Seeded 3 divers, 3 sites, 6 dives into '$NAMESPACE' on '$CONTEXT'."
 echo "Verify: curl -sk $API/dives | jq"
