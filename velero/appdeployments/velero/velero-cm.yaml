@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: ${NAMESPACE}
+  name: velero-overrides
+data:
+  values.yaml: |
+    credentials:
+      extraSecretRef: ""
+    configuration:
+      features: EnableCSI
+      backupStorageLocation:
+        - name: ${BSL_NAME}
+          bucket: ${BUCKET}
+          provider: "aws"
+          default: true
+          config:
+            region: us-east-1
+            s3ForcePathStyle: "true"
+            insecureSkipTLSVerify: "true"
+            s3Url: "https://${NUTANIX_OBJECTS_HOST}"
+            profile: ${AWS_PROFILE}
+            checksumAlgorithm: ""   #needed w/ velero in 2.16.1
+          credential:
+            key: ${SECRET_KEY_NAME}
+            name: ${NUTANIX_OBJECTS_SECRET}
+    deployNodeAgent: true
+    nodeAgent:
+      podVolumePath: /var/lib/kubelet/pods
+      tolerations:
+        - operator: Exists

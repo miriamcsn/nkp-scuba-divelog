@@ -1,0 +1,8 @@
+export BUCKET=velero
+export BSL_NAME=velero
+export NUTANIX_OBJECTS_HOST="10.55.86.10"
+export NUTANIX_OBJECTS_PORT=443
+export NUTANIX_OBJECTS_SECRET=nutanix-objects-credentials
+export AWS_PROFILE=velero
+export SECRET_KEY_NAME=aws
+export NAMESPACE=sales

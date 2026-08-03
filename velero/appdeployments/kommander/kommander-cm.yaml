@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kommander-overrides
+  namespace: kommander
+data:
+  values.yaml: |
+    kommander-licensing:
+      defaultProApps:
+      - "grafana-logging"
+      - "grafana-loki"
+      - "kube-prometheus-stack"
+      - "kubernetes-dashboard"
+      - "kubetunnel"
+      - "logging-operator"
+      - "prometheus-adapter"
+      - "velero"
+      - "cilium-hubble-relay-traefik"
+      - "ai-navigator-app"
