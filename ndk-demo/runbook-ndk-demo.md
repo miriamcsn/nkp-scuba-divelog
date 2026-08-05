@@ -24,6 +24,57 @@ helm install scuba scuba-divelog-no-sealed-secrets --namespace scuba
 
 ---
 
+## Trigger an on-demand snapshot
+
+Use this to capture recent changes (e.g. something you just added through the
+UI) instead of waiting for the hourly schedule (`js-scuba-source` /
+`js-scuba-target`) to fire.
+
+```bash
+# Run against whichever cluster is currently running the app
+export KUBECONFIG=~/.kube/manager/nkp-wlc-a-kubeconfig.conf   # or nkp-wlc-b
+
+# 1. Create the snapshot
+kubectl apply -f - <<EOF
+apiVersion: dataservices.nutanix.com/v1alpha1
+kind: ApplicationSnapshot
+metadata:
+  name: scuba-manual-snap-1
+  namespace: scuba
+spec:
+  source:
+    applicationRef:
+      name: scuba
+  expiresAfter: 24h
+EOF
+
+# 2. Wait for it to be ready
+kubectl get applicationsnapshot scuba-manual-snap-1 -n scuba -w
+
+# 3. Replicate it to the other cluster (replace <REPLICATION-TARGET-NAME>:
+#    repl-to-nkp-wlc-b if the app is running on A, repl-to-nkp-wlc-a if on B)
+kubectl apply -f - <<EOF
+apiVersion: dataservices.nutanix.com/v1alpha1
+kind: ApplicationSnapshotReplication
+metadata:
+  name: scuba-manual-snap-1-repl
+  namespace: scuba
+spec:
+  applicationSnapshotName: scuba-manual-snap-1
+  replicationTargetName: <REPLICATION-TARGET-NAME>
+EOF
+
+# 4. Watch it complete
+kubectl get applicationsnapshotreplication scuba-manual-snap-1-repl -n scuba -w
+```
+
+> **⚠️ Lesson learned:** out-of-band snapshots are **not** automatically
+> replicated by the ProtectionPlan's schedule — the `ApplicationSnapshotReplication`
+> step above is required every time. Once it completes, use
+> `scuba-manual-snap-1` as `<SNAPSHOT-NAME>` in the restore steps below.
+
+---
+
 ## Failover (A → B)
 
 > Wait for at least 1 snapshot to replicate before proceeding.
