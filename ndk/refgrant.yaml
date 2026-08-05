@@ -2,12 +2,12 @@ apiVersion: gateway.networking.k8s.io/v1beta1
 kind: ReferenceGrant
 metadata:
   name: allow-restore-from-backup
-  namespace: miriam-backup
+  namespace: scuba-backup
 spec:
   from:
   - group: dataservices.nutanix.com
     kind: ApplicationSnapshotRestore
-    namespace: miriam-scuba
+    namespace: scuba
   to:
   - group: dataservices.nutanix.com
     kind: ApplicationSnapshot

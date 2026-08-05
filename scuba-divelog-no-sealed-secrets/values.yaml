@@ -27,7 +27,7 @@ backend:
 frontend:
   image:
     repository: scuba-divelog-frontend
-    tag: "17db1ed"
+    tag: "no-sealed-7f5753a"
   replicaCount: 2
   port: 80
   resources:
