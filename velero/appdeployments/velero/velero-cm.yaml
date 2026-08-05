@@ -1,7 +1,10 @@
+# this configmap will be applied on the management cluster
+# in the workspace you want to deploy velero to.
+# It will be used to override the default velero values.yaml file.
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  namespace: ${NAMESPACE}
+  namespace: <workspace-you-want-to-deploy-velero>
   name: velero-overrides
 data:
   values.yaml: |
