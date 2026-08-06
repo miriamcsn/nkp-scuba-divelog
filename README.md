@@ -37,7 +37,7 @@ nkp-scuba-divelog/
 │   ├── namespace.yaml                target namespace declaration
 │   ├── scuba-helmrelease.yaml        HelmRelease (image tags auto-updated by Flux)
 │   └── image-automation.yaml         ImageRepository + ImagePolicy + ImageUpdateAutomation
-├── ndk/                              Nutanix Data Services manifests — plain YAML
+├── ndk-demo/                          NDK manifests (plain YAML) + runbook + diagram for the no-sealed-secrets demo
 ├── ndk-sealed/                       NDK manifests + sealed Cloudflare token + failover runbook
 ├── sealed-secrets/                   Cluster-bound SealedSecret blobs (safe to commit)
 ├── scripts/                          Helper scripts: re-seal secrets, seed demo data

@@ -105,16 +105,16 @@ Apply the manifests on cluster A (the source):
 
 ```bash
 export KUBECONFIG=~/.kube/manager/nkp-wlc-a-kubeconfig.conf
-kubectl apply -f ndk/source-ndk.yaml
-kubectl apply -f ndk/refgrant.yaml
+kubectl apply -f ndk-demo/source-ndk.yaml
+kubectl apply -f ndk-demo/refgrant.yaml
 ```
 
 Apply the manifests on cluster B (the target):
 
 ```bash
 export KUBECONFIG=~/.kube/manager/nkp-wlc-b-kubeconfig.conf
-kubectl apply -f ndk/target-ndk.yaml
-kubectl apply -f ndk/refgrant.yaml
+kubectl apply -f ndk-demo/target-ndk.yaml
+kubectl apply -f ndk-demo/refgrant.yaml
 ```
 
 **⚠️ Lesson learned:** `refgrant.yaml` must be applied on **both** clusters.
@@ -426,7 +426,7 @@ kubectl get svc -A -o json \
 | Symptom | Cause | Fix |
 | --- | --- | --- |
 | `ndk-controller-manager` pod stuck `ImagePullBackOff` in `ntnx-system` | NDK's Docker Hub pull secret (`ndk-image-pull-secret`) expired/revoked | Ask the cluster admin to rotate it on both clusters. Replication silently does nothing while this is down — check it first if snapshots aren't appearing. |
-| Restore fails: "Unauthorised to access ApplicationSnapshot" | `ReferenceGrant` missing | `kubectl apply -f ndk/refgrant.yaml` on the target cluster |
+| Restore fails: "Unauthorised to access ApplicationSnapshot" | `ReferenceGrant` missing | `kubectl apply -f ndk-demo/refgrant.yaml` on the target cluster |
 | Restore fails: "Resources already exist" | Helm release still installed | `helm uninstall scuba -n scuba` before restoring |
 | MySQL pod: `CreateContainerConfigError` / "couldn't find key ... in Secret" right after a restore | NDK restores Secret objects with empty data | Expected — run `helm upgrade --install --force-conflicts`, which re-applies this chart's hardcoded secret values on top |
 | Manual `ApplicationSnapshot` never shows up on the other cluster | Out-of-band snapshots aren't auto-replicated | Create the replication yourself: `kubectl apply -f - <<< '{"apiVersion":"dataservices.nutanix.com/v1alpha1","kind":"ApplicationSnapshotReplication","metadata":{"name":"<snapshot-name>-repl","namespace":"scuba"},"spec":{"applicationSnapshotName":"<snapshot-name>","replicationTargetName":"repl-to-nkp-wlc-a-or-b"}}'` |
